@@ -122,35 +122,6 @@ app.post("/menus", authMiddleware,roleMiddleware(["restaurant_admin", "responsab
 
 
 // ✅ Route POST : Ajouter un restaurant (admin uniquement pour l’instant)
-// app.post("/restaurants", async (req, res) => {
-//   console.log("Requête reçue (ajout restaurant) :", req.body);
-
-//   const { nom, adresse, telephone, email, description } = req.body;
-
-//   // Vérification des champs obligatoires
-//   if (!nom || !adresse || !telephone || !email || !description) {
-//     return res.status(400).json({ error: "Tous les champs sont requis" });
-//   }
-
-//   try {
-    
-
-//     const nouveauRestaurant = {
-//       nom,
-//       adresse,
-//       telephone,
-//       email,
-//       description,
-//       createdAt: Timestamp.now()
-//     };
-
-//     const docRef = await db.collection("restaurants").add(nouveauRestaurant);
-//     res.status(201).json({ message: "Restaurant ajouté avec succès", id: docRef.id });
-//   } catch (error) {
-//     console.error("Erreur ajout restaurant:", error);
-//     res.status(500).json({ error: "Erreur lors de l'ajout du restaurant" });
-//   }
-// });
 app.post("/restaurants", authMiddleware, async (req, res) => {
   console.log("Requête reçue (ajout restaurant) :", req.body);
 
@@ -236,35 +207,37 @@ app.post("/restaurants", async (req, res) => {
 });
 
 // Route POST : créer une commande
-// app.post("/commandes", async (req, res) => {
-//   const { restaurantId, utilisateurId, plats, total, statut } = req.body;
+app.post("/commandes", async (req, res) => {
+  const { restaurantId, utilisateurId, plats, total, statut } = req.body;
 
-//   // Validation simple des données reçues
-//   if (!restaurantId || !utilisateurId || !plats || !Array.isArray(plats) || plats.length === 0 || total === undefined) {
-//     return res.status(400).json({ error: "Données manquantes ou invalides" });
-//   }
+  // Validation simple des données reçues
+  if (!restaurantId || !utilisateurId || !plats || !Array.isArray(plats) || plats.length === 0 || total === undefined) {
+    return res.status(400).json({ error: "Données manquantes ou invalides" });
+  }
 
-//   try {
+  try {
    
 
-//     const nouvelleCommande = {
-//       restaurantId,
-//       utilisateurId,
-//       plats,
-//       total,
-//       statut: statut ?? "en attente",
-//       createdAt: Timestamp.now(),
-//       updatedAt: Timestamp.now(),
-//     };
+    const nouvelleCommande = {
+      restaurantId,
+      utilisateurId,
+      plats,
+      total,
+      statut: statut ?? "en attente",
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now(),
+    };
 
-//     const docRef = await db.collection("commandes").add(nouvelleCommande);
+    const docRef = await db.collection("commandes").add(nouvelleCommande);
 
-//     res.status(201).json({ message: "Commande créée avec succès", id: docRef.id });
-//   } catch (error) {
-//     console.error("Erreur création commande:", error);
-//     res.status(500).json({ error: "Erreur serveur" });
-//   }
-// });
+    res.status(201).json({ message: "Commande créée avec succès", id: docRef.id });
+  } catch (error) {
+    console.error("Erreur création commande:", error);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+});
+
+
 // Ajoute authMiddleware comme 2e argument, avant la fonction async
 app.post("/commandes", authMiddleware, async (req, res) => {
   const { restaurantId, utilisateurId, plats, total, statut } = req.body;
@@ -482,56 +455,6 @@ app.post('/auth/signin', async (req, res) => {
 
 
 // Route POST : créer un responsable de restaurant (admin uniquement)
-// app.post("/admin/creer-responsable", async (req, res) => {
-//   const { email, password, nom, prenom, telephone, restaurantId } = req.body;
-
-//   // 🔒 Vérification simple des champs
-//   if (!email || !password || !nom || !prenom || !telephone || !restaurantId) {
-//     return res.status(400).json({ error: "Champs obligatoires manquants" });
-//   }
-
-//   try {
-//     // ✅ Créer le compte utilisateur dans Firebase Auth
-//     const userRecord = await getAuth().createUser({
-//       email,
-//       password,
-//       displayName: `${prenom} ${nom}`,
-//       phoneNumber: telephone, // en format international (ex: +237...)
-//       emailVerified: false,
-//     });
-
-//     console.log("Firebase project:", admin.app().options.projectId);
-
-
-//     // ✅ Créer son profil dans Firestore (collection utilisateurs)
-//     console.log("Avant écriture Firestore");
-//     await db.collection("utilisateurs").doc(userRecord.uid).set({
-//       email,
-//       nom,
-//       prenom,
-//       telephone,
-//       role: "responsable",
-//       restaurantId,
-//       createdAt: Timestamp.now(),
-//       updatedAt: Timestamp.now(),
-//     });
-//     console.log("Après écriture Firestore");
-
-//     res.status(201).json({
-//       message: "Responsable créé avec succès",
-//       uid: userRecord.uid,
-//     });
-//   } catch (error) {
-//     console.error("Erreur création responsable:", error);
-//     if (error.code === "auth/email-already-exists") {
-//       return res.status(400).json({ error: "Cet email est déjà utilisé" });
-//     }
-//     if (error.code === "auth/phone-number-already-exists") {
-//       return res.status(400).json({ error: "Ce numéro de téléphone est déjà utilisé" });
-//     }
-//     res.status(500).json({ error: "Erreur serveur" });
-//   }
-// });
 app.post("/admin/creer-responsable", authMiddleware, roleMiddleware(["admin"]), async (req, res) => {
   // Seul un admin peut créer un responsable
   if (req.user.role !== "admin") {
